@@ -37,99 +37,90 @@ fold.frames <- function(frame.list) {
 
 
 # Produce the database of games. Add on extra seasons if desired.
-full.game.database <- function (extra.seasons=0) {
-
-  game.roster <- NULL
-  ## New settings that don't have the "old" game files. Add in next season too.
-  seasons <- seq(20072008, 20162017, by=10001)
-
-  if (extra.seasons > 0) {
-      last.season <- seasons[length(seasons)]
-      seasons <- c(seasons, paste(as.integer(substr(last.season, 1, 4)) + 1:extra.seasons, as.integer(substr(last.season, 5, 8)) + 
-                                  1:extra.seasons, sep = ""))
-  }
-  
-  games <- rep (1230, length(seasons) + extra.seasons); games[seasons == 20122013] <- 720
-
-  #Noted difficulties with existing data in regular season.
-  bad.game.list <- list(#c(1:127, 134,135,  #Not in system.   0203
-                          #419, 483,
-                        #  582, 598, 872),  #bad images.           
-                        #c(10, 251, 453, 456, 482, 802,   1205),     #0304
-                        #c(18, 140,   #Visitor GIF makes segfault.   0506
-                        #  127,
-                        #  234,
-                        #  298,  #wrong ES file -- 398 instead of 298.
-                        #  458,  #bogus ES file.
-                        #  974),  #0506
-                        #c(1024),  #missing line of players for a goal.    #0607
-
-                        c(1178), c(259, 409, 1077),     #0708 0809
-                        c(81, 827, 836, 857, 863, 874, 885), c(124, 429),   #0910 1011
-                        c(259), c(), c(), c(), c(), c()) #1112 1213 1314
-  if (extra.seasons > 0) bad.game.list[[length(bad.game.list)+1]] <- c()
-    
-  # Playoff brackets.
-  playoff.series <- c("11","12","13","14","15","16","17","18",
-                      "21","22","23","24","31","32","41")
-  gnum <- paste0("0", c(t(outer(playoff.series, 1:7, paste0))))
-
-  #Game roster. Game session; Game number;
-  #To add: away team; home team. score. Date.
-  for (ss in 1:length(seasons)) {
-    gn1 <- as.character(1:games[ss]); while(any(nchar(gn1)<4)) gn1[nchar(gn1)<4] <- paste0("0", gn1[nchar(gn1)<4])
-    df1 <- data.frame(season=seasons[ss],
-                      session=c(rep("Regular", games[ss]), rep("Playoffs", length(gnum))),
-                      gamenumber=c(gn1, gnum),
-                      gcode="",
-                      status=1,
-                      valid=c(!(1:games[ss] %in% bad.game.list[[ss]]), rep(TRUE, length(gnum))),
-                      
-                      awayteam="", hometeam="", awayscore="", homescore="",
-                      date="",
-
-                      game.start="", game.end="", periods=0,
-                      seconds=0, awaycorsi=0, homecorsi=0,
-                      
-                      stringsAsFactors=FALSE)
-
-    game.roster <- rbind(game.roster, df1)
-  }
-  game.roster[,1] <- as.character(game.roster[,1])
-  game.roster[,2] <- as.character(game.roster[,2])
-  game.roster$gcode <- paste0(2+1*(game.roster$session=="Playoffs"), game.roster$gamenumber)
-
-  game.roster$status[!game.roster$valid] <- 0
-  game.roster <- game.roster[,colnames(game.roster) != "valid"]
-
-  #Knock out unplayed playoff games. Here's the data from the last 12 seasons.
-  playoff.series.lengths <- 
-    c(#5,5,6,7,6,4,7,7, 6,5,6,7, 7,4, 7,
-      #5,7,5,7,6,5,7,5, 4,6,6,6, 7,6, 7, #2004
-      #5,6,4,6,6,5,7,5, 5,5,6,4, 7,5, 7, #2006
-      #5,6,4,5,6,5,7,5, 6,5,6,5, 5,6, 5,
-      7,4,7,5,6,7,6,6, 5,5,4,6, 5,6, 6, #2008
-      4,7,7,6,6,4,4,6, 7,7,7,6, 4,5, 7,
-      7,5,6,6,6,6,6,7, 7,7,5,6, 5,4, 6,
-      5,7,7,7,7,6,4,6, 4,4,6,7, 7,5, 7, #2011
-      7,7,7,6,5,5,6,5, 7,5,4,5, 6,5, 6,
-      6,5,7,7,5,7,4,6, 5,5,7,7, 4,5, 6, #2013
-      5,4,6,7,7,6,6,7, 7,7,6,7, 6,7, 5, #2014
-      6,7,5,7,6,6,4,6, 6,7,4,5, 7,7, 6, #2015
-      ##rep(7,15),
-      rep(7, 15*(extra.seasons+1)))  #,matrix( nrow=15)
-  sequence.seven <- function(nn) c(rep(1, nn), rep(0, 7-nn))
-  playoff.status <- c(sapply(playoff.series.lengths, sequence.seven))
-  game.roster$status[game.roster$session=="Playoffs"] <- playoff.status
-  
-  #bad.playoff <- matrix(c("20032004", "30134",
-  #                        "20052006", "30233"), nrow=2)  #ucase TR TD
-  #for (kk in 1:dim(bad.playoff)[2]) 
-  #  game.roster$status[game.roster$season == bad.playoff[1,kk] &
-  #                     game.roster$gcode == bad.playoff[2,kk]] <- 0
-
-  return(game.roster)
-  
+full.game.database <- function (extra.seasons = 0) 
+{
+    game.roster <- NULL
+    seasons <- c("20022003", "20032004", "20052006", "20062007", "20072008", "20082009", "20092010", "20102011", "20112012", "20122013", "20132014", "20142015", "20152016")
+    if (extra.seasons > 0) 
+	{
+        seasons <- c(seasons, paste(2015 + 1:extra.seasons, 2016 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20162017 - PB
+	}
+	
+	### Patched: bad.game.list now include many NULLs for additional seasons.
+	### 		Reason: R doesn't allow adding NULL elements to a list after the line has been instantiated. - JD
+    games <- c(rep(1230, 9), 720, 1230, 1230, 1230, rep(1230, extra.seasons))
+    bad.game.list <- list(c(1:127, 134, 135, 582, 598, 872), 
+        c(10, 251, 453, 456, 482, 802, 1205), c(18, 140, 127, 
+            234, 298, 458, 974), c(1024), c(1178), c(259, 409, 
+            1077), c(81, 827, 836, 857, 863, 874, 885), c(124, 
+            429), c(259), c(), c(), c(), c(), c(), c(), c(), c(), c(),
+			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c())
+			
+			
+	bad.game.list = bad.game.list[1:length(seasons)] ### Patched: Removes extraneous elements rather than adding on NULLs - JD
+	
+    playoff.series <- c("11", "12", "13", "14", "15", "16", "17", 
+        "18", "21", "22", "23", "24", "31", "32", "41")
+    gnum <- paste0("0", c(t(outer(playoff.series, 1:7, paste0))))
+    for (ss in 1:length(seasons)) 
+	{
+        gn1 <- as.character(1:games[ss])
+        while (any(nchar(gn1) < 4)) gn1[nchar(gn1) < 4] <- paste0("0", 
+            gn1[nchar(gn1) < 4])
+        df1 <- data.frame(season = seasons[ss], session = c(rep("Regular", 
+            games[ss]), rep("Playoffs", length(gnum))), gamenumber = c(gn1, 
+            gnum), gcode = "", status = 1, valid = c(!(1:games[ss] %in% 
+            bad.game.list[[ss]]), rep(TRUE, length(gnum))), awayteam = "", 
+            hometeam = "", awayscore = "", homescore = "", date = "", 
+            game.start = "", game.end = "", periods = 0, stringsAsFactors = FALSE)
+        game.roster <- rbind(game.roster, df1)
+    }
+	
+	
+    game.roster[, 1] <- as.character(game.roster[, 1])
+    game.roster[, 2] <- as.character(game.roster[, 2])
+    game.roster$gcode <- paste0(2 + 1 * (game.roster$session == 
+        "Playoffs"), game.roster$gamenumber)
+    game.roster$status[!game.roster$valid] <- 0
+    game.roster <- game.roster[, colnames(game.roster) != "valid"]
+    playoff.series.lengths <- c(
+        4, 4, 6, 7, 7, 7, 6, 4,  5, 7, 7, 5,  6, 6,  6, #2002-2003
+        6, 5, 5, 6, 7, 6, 4, 7,  7, 6, 5, 6,  7, 7,  4, #2003-2004
+        7, 5, 7, 5, 7, 6, 5, 7,  5, 4, 6, 6,  6, 7,  6, #2005-2006
+        7, 5, 6, 4, 6, 6, 5, 7,  5, 5, 5, 6,  4, 7,  5, #2006-2007
+        7, 5, 6, 4, 5, 6, 5, 7,  5, 6, 5, 6,  5, 5,  6, #2007-2008
+        5, 7, 4, 7, 5, 6, 7, 6,  6, 5, 5, 4,  6, 5,  6, #2008-2009
+        6, 4, 7, 7, 6, 6, 6, 7,  7, 7, 5, 6,  5, 4,  6, #2009-2010
+        5, 7, 7, 7, 7, 6, 4, 6,  4, 4, 6, 7,  7, 5,  7, #2010-2011
+        7, 7, 7, 6, 5, 5, 6, 5,  7, 5, 4, 5,  6, 5,  6, #2011-2012
+        6, 5, 7, 7, 5, 7, 4, 6,  5, 5, 7, 7,  4, 5,  6, #2012-2013
+        5, 4, 6, 7, 7, 6, 6, 7,  7, 7, 6, 7,  6, 7,  5, #2013-2014
+        6, 7, 5, 7, 6, 6, 4, 6,  6, 7, 4, 5,  7, 7,  6, #2014-2015 - PB
+        6, 5, 6, 5, 6, 7, 7, 5,  5, 6, 7, 7,  7, 6,  6, #2015-2016 - PB
+        rep(7, 15 * (extra.seasons)))
+    sequence.seven <- function(nn) c(rep(1, nn), rep(0, 7 - nn))
+    playoff.status <- c(sapply(playoff.series.lengths, sequence.seven))
+    game.roster$status[game.roster$session == "Playoffs"] <- playoff.status
+    bad.playoff <- matrix(c("20032004", "30134", "20052006", 
+        "30233"), nrow = 2)
+    for (kk in 1:dim(bad.playoff)[2]) game.roster$status[game.roster$season == 
+        bad.playoff[1, kk] & game.roster$gcode == bad.playoff[2, 
+        kk]] <- 0
+    gamecols <- match(paste0("20142015", as.character(nhlscrapr::date201415$gcode)), 
+        paste0(game.roster$season, game.roster$gcode))
+    game.roster$awayteam[gamecols] <- as.character(nhlscrapr::date201415$awayteam)
+    game.roster$hometeam[gamecols] <- as.character(nhlscrapr::date201415$hometeam)
+    unplayed <- which(game.roster$game.start[gamecols] == "")
+    game.roster$game.start[gamecols[unplayed]] <- paste(as.character(nhlscrapr::date201415$StartET[unplayed]), 
+        "ET")
+    game.roster$date[gamecols[unplayed]] <- as.character(nhlscrapr::date201415$GameDate[unplayed])
+    return(game.roster)
 }
 
 
@@ -620,249 +611,192 @@ construct.rosters.from.list <- function (roster.collection,  #raw list
 ## setwd ("~/Documents/nhlr/war-on-ice.com")
 
 
-compile.all.games <- function (rdata.folder="nhlr-data",
-                               output.folder="source-data",
-                               new.game.table=NULL,
-                               seasons=NULL,
-
-                               verbose=FALSE,
-                               
-                               override.days.back=NULL,
-                               date.check=FALSE,
-
-                               roster.dropin=NULL,
-                               reload.games=FALSE,
-
-                               ## override.download=FALSE,
-                               
-                               #time.check=FALSE,
-                               
-                               ...) {
-
-    #library(nhlscrapr); rdata.folder="nhlr-data"; output.folder="source-data"; new.game.table=filter(gamesstart, season >= 20052006); seasons=NULL; verbose=FALSE; override.days.back=NULL; date.check=FALSE; roster.dropin=rosterprefab; reload.games=TRUE
-    
-    suppressWarnings(dir.create(output.folder))
-
-    if (file.exists(paste0(output.folder,"/nhlscrapr-core.RData"))) {
-        message ("Loading game and player data.")
-        load(paste0(output.folder,"/nhlscrapr-core.RData"))
-        freshload <- FALSE
-    } else {
-        message ("Creating game table and player data.")
-        freshload <- TRUE
-        games <- full.game.database() #games <- subset(new.game.table, season %in% c("20022003", "20032004", "20052006"));   games <- games[13841:13962,]
-        grand.data <- NULL
-        roster.master <- NULL
-        distance.adjust <- scoring.models <- shot.tables <- NULL
-
-        ## Pre-cleaning.
-
-        ## Correct missing dates.
-        blanks <- which(is.na(games$date))
-        for (kk in blanks[blanks>1 & blanks<nrow(games)]) if (!is.na(games$date[kk-1]) && !is.na(games$date[kk+1]) && games$date[kk-1] == games$date[kk+1]) games$date[kk] <- games$date[kk-1]
-        
-    }
-
-    ## If dates got replaced by their integer counterparts.
-    repl <- grep("^[0-9]+$", games$date)
-    games$date[repl] <- as.character(as.Date("1970-01-01") + as.numeric(games$date[repl]))
-
-    if (!is.null(new.game.table)) {
-        games <- new.game.table
-    }
-    
-    if (!is.null(seasons)) {
-        message ("Overriding existing game table to create one with specified seasons.")
-        eligible.seasons <- seq(20022003, 20152016, by=10001)[-3]
-        if (!all(seasons %in% eligible.seasons)) stop ("Specified seasons must be within ", paste(eligible.seasons, collapse=", "))
-        games <- full.game.database()
-        games <- games[games$season %in% seasons,]
-    }
-
-
-    ## if starting new from table.
-    if (reload.games) games$status[games$status == 3] <- 1
-    
-    
-    today.now <- format(as.POSIXct(Sys.time(), tz="America/Los_Angeles"), tz="America/Los_Angeles", usetz=TRUE)
-    today <- as.Date(today.now)
-    override.dates <- as.character(today - override.days.back)
-    
-    override.rows <- which(games$date %in% override.dates)
-    games$status[which(games$date %in% override.dates)] <- 4
-
-    message ("In progress games to update:")
-    print(games$gcode[which(games$date %in% override.dates)])
-    
-    downloaded.games <- NULL
-
-    if (!is.null (roster.dropin)) {
-        roster.master <- construct.rosters.from.list (NULL, roster.master, roster.dropin)
-    }
-
-    
-    ## Go season by season in the update process.
-    for (this.season in unique(games$season)) {
-            
-    ##2. try and download new games -- 1s and 2s.
-        new.pbp <- new.roster <- list()
-        cons.failures <- 0
-
-        replace.rows <- which(games$season == this.season & games$status %in% c(1,2,4))
-        sub.games <- games[replace.rows,]
-        ## print(sub.games)
-        
-        if (length(replace.rows) == 0) {
-            message (this.season,": no games need updating.")
-            next
-        }
-        
-        for (kk in 1:nrow(sub.games)[1]) {
-            if (kk %% 500 == 0) message(paste0("Event assembly: ",this.season," game",kk))
-
-            if (verbose) message ("Trying game ", sub.games$season[kk],sub.games$gcode[kk], " ", sub.games$date[kk], " because it's ", today.now)
-            if (grepl("[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}", sub.games$date[kk]) | !date.check) {
-                if (sub.games$date[kk] > today.now) {
-                    if (verbose) message ("Skipping Game ", sub.games$season[kk],sub.games$gcode[kk], " ", sub.games$date[kk], " because it's ", today.now)
-                    next
-                }} else next
-
-            ##print(kk)
-
-            tryme <- try({
-      
-                game.info <- retrieve.game(sub.games$season[kk], sub.games$gcode[kk],
-                                           rdata.folder, force=FALSE)
-                ##message (sub.games$season[kk], " ", sub.games$gcode[kk], " ", game.info$status)
-                
-                doit <- FALSE
-                if (is.null(game.info)) doit <- TRUE else if (sub.games$status[kk] == 4 | game.info$status %in% 1:2) doit <- TRUE
-
-                
-                if (doit) {
-                    game.info <-     ## re-download it.
-                        process.single.game(sub.games$season[kk], sub.games$gcode[kk],
-                                            rdata.folder=rdata.folder, override.download=TRUE, ...)
-                    if (game.info$status %in% 2:3) downloaded.games <- c(downloaded.games, paste0(sub.games$season[kk], sub.games$gcode[kk]))
-                }
-      
-                sub.games$status[kk] <- game.info$status
-                sub.games$awayteam[kk] <- game.info$teams[1]
-                sub.games$hometeam[kk] <- game.info$teams[2]
-                sub.games$awayscore[kk] <- game.info$score[2]
-                sub.games$homescore[kk] <- game.info$score[1]
-                
-                sub.games$date[kk] <- as.character(as.Date(paste(game.info$date, collapse=" "), format="%A %B %d %Y"))
-                
-                sub.games$game.start[kk] <- game.info$game.times[1]
-                sub.games$game.end[kk] <- game.info$game.times[2]
-                sub.games$periods[kk] <- max(game.info$playbyplay$period)
-                sub.games$seconds[kk] <- max(game.info$playbyplay$seconds)
-
-                sub.games$awaycorsi[kk] <- sum(game.info$playbyplay$etype %in% c("BLOCK","SHOT","MISS","GOAL") &
-                                               game.info$playbyplay$ev.team == game.info$playbyplay$awayteam)
-                sub.games$homecorsi[kk] <- sum(game.info$playbyplay$etype %in% c("BLOCK","SHOT","MISS","GOAL") &
-                                               game.info$playbyplay$ev.team == game.info$playbyplay$hometeam)
-                
-                new.pbp[[kk]] <- game.info
-                new.roster[[kk]] <- game.info$players
-                
-            }, TRUE)
-            
-            if (class(tryme) == "try-error") cons.failures <- cons.failures + 1 else cons.failures <- 0
-            if (cons.failures >= 60) {
-                message ("60 consecutive failed attempts; stopping file retrieval.")
-                break
-            }
-        }
-        games[replace.rows,] <- sub.games
-
-        
-        if (length(new.roster) > 0) {
-
-            ## update rosters.
-
-            ## save (roster.master, new.roster, file="myrostercomp.RData")
-            
-            message(this.season," -- updating rosters on each game file.")
-            roster.master <- construct.rosters.from.list (new.roster, roster.master)
-            message(this.season," -- updated rosters on each game file.")
-            
-            new.pbp.2 <- lapply(new.pbp, function (game.info) {
-                out <- try(augment.game(game.info, roster.master) %>%
-                           mutate (season = as.numeric(as.character(season)),
-                                   gcode = as.numeric(as.character(gcode))), TRUE)
-                if (class(out) == "try-error") out <- NULL
-                return(out)
-            })
-
-            secondary.data <- rbind_all(new.pbp.2)    ## fold.frames(new.pbp.2)
-            secondary.data$adjusted.distance <- NA
-            secondary.data$shot.feature <- rushes.rebounds (secondary.data)  ## new
-            secondary.data$import.ies <- 0   #xycoords: 0, imputed, espn, sportsnet
-            
-            message ("Adding event location sections.")
-            coords <- secondary.data[,c("xcoord","ycoord")]
-            flip <- which(coords[,1] < 0)
-            coords[flip,1] <- -coords[flip,1]; coords[flip,2] <- -coords[flip,2];
-            secondary.data$loc.section <- pick.section (coords)
-            
-            #secondary.data$loc.section <- NA
-            secondary.data$new.loc.section <- NA ##secondary.data$loc.section
-            secondary.data$newxc <- NA ## secondary.data$xcoord
-            secondary.data$newyc <- NA ##secondary.data$ycoord
-
-            secondary.data$score.diff.cat <- with(secondary.data,  ## Just upped to 3 goal splits.
-                                                  0*(home.score - away.score <= -3) +
-                                                  1*(home.score - away.score == -2) +
-                                                  2*(home.score - away.score == -1) +
-                                                  3*(home.score - away.score == 0) +
-                                                  4*(home.score - away.score == 1) +
-                                                  5*(home.score - away.score == 2) +
-                                                  6*(home.score - away.score >= 3))
-
-
-        } else secondary.data <- NULL
-    
-        if (!is.null(secondary.data)) {
-
-            if (file.exists(paste0(output.folder,"/nhlscrapr-",this.season,".RData"))) {
-                load (paste0(output.folder,"/nhlscrapr-",this.season,".RData"))
-            } else grand.data <- secondary.data[secondary.data$season=="0000",]
-
-            message ("Fold secondary")
-            #print(head(grand.data,2))
-            #print(head(secondary.data,2))
-            secondary.data$subdistance <- NA
-            
-            grand.data <- rbind(grand.data[!(grand.data$gcode %in% unique(secondary.data$gcode)),],
-                                secondary.data)
-            grand.data$gcode <- as.character(grand.data$gcode)
-
-            ## error in the parse. Seems to be a one game error.
-            grand.data <- filter(grand.data, etype != "GOFF")
-            
-            message ("Saving data to ",this.season)
-
-            save (grand.data, file=paste0(output.folder,"/nhlscrapr-",this.season,".RData"))
-            
-        }
-
-        
-    }
-    message ("Pre-fatigue")
-    
-    if (freshload) games <- add.fatigue (games)
-
-    message("Saving to output file")
-    roster.unique <- manual.patches(roster.master[match(1:max(roster.master$player.id), roster.master$player.id),])
-    save(roster.master, roster.unique, games, file=paste0(output.folder,"/nhlscrapr-core.RData"))
-
-    #print(quadsarray)
-    ## Here would go the adjusted location/imputed position part.
-    ## if (!skip.steps) grand.data <- create.subzone.adjustments (grand.data)
+compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source-data", 
+                             new.game.table = NULL, seasons = NULL, verbose = FALSE, override.days.back = NULL, 
+                             date.check = FALSE, extra.seasons = 0, ...) 
+{
   
-    return(downloaded.games)
-
+  if (extra.seasons > 0) 
+  {
+    seasons <- c(seasons, paste(2015 + 1:extra.seasons, 2016 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20162017 - PB
+  }
+  
+  suppressWarnings(dir.create(output.folder))
+  if (file.exists(paste0(output.folder, "/nhlscrapr-core.RData"))) {
+    message("Loading game and player data.")
+    load(paste0(output.folder, "/nhlscrapr-core.RData"))
+  }
+  else {
+    message("Creating game table and player data.")
+    games <- full.game.database()
+    grand.data <- NULL
+    roster.master <- NULL
+    distance.adjust <- scoring.models <- shot.tables <- NULL
+    blanks <- which(is.na(games$date))
+    for (kk in blanks[blanks > 1 & blanks < nrow(games)]) if (!is.na(games$date[kk - 
+                                                                                1]) && !is.na(games$date[kk + 1]) && games$date[kk - 
+                                                                                                                                1] == games$date[kk + 1]) 
+      games$date[kk] <- games$date[kk - 1]
+  }
+  repl <- grep("^[0-9]+$", games$date)
+  games$date[repl] <- as.character(as.Date("1970-01-01") + 
+                                     as.numeric(games$date[repl]))
+  if (!is.null(new.game.table)) {
+    games <- new.game.table
+  }
+  if (!is.null(seasons)) {
+    message("Overriding existing game table to create one with specified seasons.")
+    eligible.seasons <- c("20022003", "20032004", "20052006", 
+                          "20062007", "20072008", "20082009", "20092010", "20102011", 
+                          "20112012", "20122013", "20132014", "20142015", "20152016")
+    if (extra.seasons > 0) 
+    {
+      eligible.seasons <- c(seasons, paste(2015 + 1:extra.seasons, 2016 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20162017 - PB
+    }
+    if (!all(seasons %in% eligible.seasons)) 
+      stop("Specified seasons must be within ", paste(eligible.seasons, 
+                                                      collapse = ", "))
+    games <- full.game.database()
+    games <- games[games$season %in% seasons, ]
+  }
+  today.now <- format(as.POSIXct(Sys.time(), tz = "America/Los_Angeles"), 
+                      tz = "America/Los_Angeles", usetz = TRUE)
+  today <- as.Date(today.now)
+  override.dates <- as.character(today - override.days.back)
+  override.rows <- which(games$date %in% override.dates)
+  games$status[which(games$date %in% override.dates)] <- 2
+  for (this.season in unique(games$season)) {
+    new.pbp <- new.roster <- list()
+    cons.failures <- 0
+    replace.rows <- which(games$season == this.season & games$status %in% 
+                            c(1, 2))
+    sub.games <- games[replace.rows, ]
+    if (length(replace.rows) == 0) {
+      message(this.season, ": no games need updating.")
+      next
+    }
+    for (kk in 1:nrow(sub.games)[1]) {
+      if (kk%%500 == 0) 
+        message(paste0("Event assembly: ", this.season, 
+                       " game", kk))
+      if (verbose) 
+        message("Trying game ", sub.games$season[kk], 
+                sub.games$gcode[kk], " ", sub.games$date[kk], 
+                " because it's ", today.now)
+      if (grepl("[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}", sub.games$date[kk]) | 
+          !date.check) {
+        if (sub.games$date[kk] > today.now) {
+          if (verbose) 
+            message("Skipping Game ", sub.games$season[kk], 
+                    sub.games$gcode[kk], " ", sub.games$date[kk], 
+                    " because it's ", today.now)
+          next
+        }
+      }
+      else next
+      tryme <- try({
+        game.info <- retrieve.game(sub.games$season[kk], 
+                                   sub.games$gcode[kk], rdata.folder, force = FALSE)
+        doit <- FALSE
+        if (is.null(game.info)) 
+          doit <- TRUE
+        else if (game.info$status %in% 1:2) 
+          doit <- TRUE
+        if (doit) 
+          game.info <- process.single.game(sub.games$season[kk], 
+                                           sub.games$gcode[kk], rdata.folder = rdata.folder, 
+                                           override.download = TRUE, ...)
+        sub.games$status[kk] <- game.info$status
+        sub.games$awayteam[kk] <- game.info$teams[1]
+        sub.games$hometeam[kk] <- game.info$teams[2]
+        sub.games$awayscore[kk] <- game.info$score[2]
+        sub.games$homescore[kk] <- game.info$score[1]
+        sub.games$date[kk] <- as.character(as.Date(paste(game.info$date, 
+                                                         collapse = " "), format = "%A %B %d %Y"))
+        sub.games$game.start[kk] <- game.info$game.times[1]
+        sub.games$game.end[kk] <- game.info$game.times[2]
+        sub.games$periods[kk] <- max(game.info$playbyplay$period)
+        new.pbp[[kk]] <- game.info
+        new.roster[[kk]] <- game.info$players
+      }, TRUE)
+      if (class(tryme) == "try-error") 
+        cons.failures <- cons.failures + 1
+      else cons.failures <- 0
+      if (cons.failures >= 20) {
+        message("20 consecutive failed attempts; stopping file retrieval.")
+        break
+      }
+    }
+    games[replace.rows, ] <- sub.games
+    if (length(new.roster) > 0) {
+      message(this.season, " -- updating rosters on each game file.")
+      roster.master <- construct.rosters.from.list(new.roster, 
+                                                   roster.master)
+      new.pbp.2 <- lapply(new.pbp, function(game.info) {
+        out <- try(augment.game(game.info, roster.master), 
+                   TRUE)
+        if (class(out) == "try-error") 
+          out <- NULL
+        return(out)
+      })
+      saveRDS(new.pbp.2, file = "new.pbp.2.RDS")
+      saveRDS(new.pbp, file="new.pbp.RDS")
+      secondary.data <- fold.frames(new.pbp.2)
+      secondary.data$adjusted.distance <- NA
+      secondary.data$shot.prob.distance <- NA
+      secondary.data$prob.goal.if.ongoal <- NA
+      message("Adding event location sections.")
+      coords <- secondary.data[, c("xcoord", "ycoord")]
+      flip <- which(coords[, 1] < 0)
+      coords[flip, 1] <- -coords[flip, 1]
+      coords[flip, 2] <- -coords[flip, 2]
+      secondary.data$loc.section <- pick.section(coords)
+      secondary.data$new.loc.section <- secondary.data$loc.section
+      secondary.data$newxc <- secondary.data$xcoord
+      secondary.data$newyc <- secondary.data$ycoord
+    }
+    else secondary.data <- NULL
+    if (!is.null(secondary.data)) {
+      if (file.exists(paste0(output.folder, "/nhlscrapr-", 
+                             this.season, ".RData"))) {
+        load(paste0(output.folder, "/nhlscrapr-", this.season, 
+                    ".RData"))
+      }
+      else grand.data <- secondary.data[secondary.data$season == 
+                                          "0000", ]
+      grand.data <- rbind(grand.data[!(grand.data$gcode %in% 
+                                         unique(secondary.data$gcode)), ], secondary.data)
+      grand.data$gcode <- as.character(grand.data$gcode)
+      save(grand.data, file = paste0(output.folder, "/nhlscrapr-", 
+                                     this.season, ".RData"))
+    }
+  }
+  message("Saving to output file")
+  roster.unique <- manual.patches(roster.master[match(1:max(roster.master$player.id), 
+                                                      roster.master$player.id), ])
+  save(roster.master, roster.unique, games, file = paste0(output.folder, 
+                                                          "/nhlscrapr-core.RData"))
+  return(TRUE)
 }
 
+aggregate.roster.by.name <- function(roster)
+{
+
+	roster_name = ddply(roster, .(firstlast), summarize,
+				pos = pos[1],
+				last = last[1],
+				first = first[1],
+				numfirstlast = numfirstlast[1],
+				firstlast = firstlast[1],
+				index = index[1],
+				player.id = player.id[1],
+				pC = sum(pC),
+				pL = sum(pL),
+				pR = sum(pR),
+				pD = sum(pD),
+				pG = sum(pG)	
+				)
+	
+	roster_name = roster_name[order(roster_name$player.id),]
+	return(roster_name)
+}

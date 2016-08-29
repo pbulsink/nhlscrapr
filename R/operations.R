@@ -482,50 +482,54 @@ player.summary <- function (grand.data, roster.unique) {
   events <- c("PENL", "SHOT", "GOAL", "MISS", "BLOCK")
   #player in event (1,2,3); player on ice for; player on ice against. 5 deep.
 
-  columns <- 3+c(5:16, 18:20, 28:29)
-  involved.players <- NULL;
-  for (cc in columns) involved.players <- unique(c(involved.players, grand.data[,cc]))
+  columns <- 3 + c(5:16, 18:20, 28:29)
+  involved.players <- NULL
+  for (cc in columns) involved.players <- unique(c(involved.players, grand.data[, cc]))
   involved.players <- sort(involved.players)
   output <- array(0, c(length(involved.players), length(events), 5))
-
-  #Probably a faster way to do this, but OK for now.
+  
   for (ee in events) {
     message(paste("Matching", ee))
-    little.data <- grand.data[grand.data$etype==ee,]
-    if (dim(little.data)[1]>0) {
-      for (cc in c("ev.player.1", "ev.player.2", "ev.player.3")) {
-        evs <- table(little.data[,cc])
+    little.data <- grand.data[grand.data$etype == ee, ]
+    if (dim(little.data)[1] > 0) {
+      for (cc in which(names(grand.data) %in% c("ev.player.1", "ev.player.2", "ev.player.3")))  ## patched this line, cc is an index now - JD
+      {
+        evs <- table(little.data[, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
-        output[rws, which(ee==events), cc-20] <-
-          output[rws, which(ee==events), cc-20] + evs
+        output[rws, which(ee == events), cc - 20] <- output[rws, which(ee == events), cc - 20] + evs
       }
-
-      #away team
-      for (cc in c("a1","a2","a3","a4","a5","a6", "away.G")) {
-        evs <- table(little.data[little.data$ev.team==little.data$hometeam, cc])
+      for (cc in which(names(grand.data) %in% c("a1", "a2", "a3", "a4", "a5", "a6", "away.G"))) ## patched this line, cc is an index now - JD
+      {
+        evs <- table(little.data[little.data$ev.team ==  little.data$hometeam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
-        output[rws, which(ee==events), 5] <-
-          output[rws, which(ee==events), 5] + evs
-        evs <- table(little.data[little.data$ev.team==little.data$awayteam, cc])
+	evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+	rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+        output[rws, which(ee == events), 5] <- output[rws, which(ee == events), 5] + evs
+							
+        evs <- table(little.data[little.data$ev.team == little.data$awayteam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
-        output[rws, which(ee==events), 4] <-
-          output[rws, which(ee==events), 4] + evs
+	evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+	rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+			
+        output[rws, which(ee == events), 4] <- output[rws, which(ee == events), 4] + evs
       }
-
-      #home team
-      for (cc in c("h1","h2","h3","h4","h5","h6", "home.G")) {
-        evs <- table(little.data[little.data$ev.team==little.data$hometeam, cc])
+      for (cc in which(names(grand.data) %in%  c("h1", "h2", "h3", "h4", "h5", "h6",  "home.G")))  ## patched this line, cc is an index now - JD
+      {
+        evs <- table(little.data[little.data$ev.team == little.data$hometeam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
-        output[rws, which(ee==events), 4] <-
-          output[rws, which(ee==events), 4] + evs
-        evs <- table(little.data[little.data$ev.team==little.data$awayteam, cc])
+        evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+	rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+        output[rws, which(ee == events), 4] <- output[rws,  which(ee == events), 4] + evs
+              
+	evs <- table(little.data[little.data$ev.team == little.data$awayteam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
-        output[rws, which(ee==events), 5] <-
-          output[rws, which(ee==events), 5] + evs
+        evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+	rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+        output[rws, which(ee == events), 5] <- output[rws, which(ee == events), 5] + evs
       }
     }
   }
-  output <- output[involved.players > 0,,]
+  output <- output[involved.players > 0, , ]
   involved.players <- involved.players[involved.players > 0]
   rownames(output) <- roster.unique$firstlast[involved.players]
   colnames(output) <- events
