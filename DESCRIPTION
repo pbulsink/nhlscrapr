@@ -1,13 +1,21 @@
 Package: nhlscrapr
 Type: Package
 Title: Compiling the NHL Real Time Scoring System Database for easy use in R
-Version: 1.10.9
-Date: 2015-11-19
-Author: A.C. Thomas, Samuel L. Ventura
-Maintainer: A.C. Thomas <act@acthomas.ca>
-Depends: R (>= 2.15.0), dplyr
-Imports: RCurl, rjson, biglm, bitops
-Description: Compiling the NHL Real Time Scoring System Database for easy use in R
+Version: 1.10.10
+Date: 2017-01-25
+Author: A.C. Thomas [aut], Samuel L. Ventura [aut], Philip Bulsink [ctb]
+Maintainer: A.C. Thomas <act@acthomas.ca>,
+    Philip Bulsink <bulsinkp@gmail.com>
+Depends:
+    R (>= 2.15.0),
+    dplyr
+Imports:
+    RCurl,
+    rjson,
+    biglm,
+    bitops
+Description: Compiling the NHL Real Time Scoring System Database for easy use in
+    R.
 License: GPL (>= 3)
-LazyData: yes 
-
+LazyData: yes
+RoxygenNote: 5.0.1
