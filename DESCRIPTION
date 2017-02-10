@@ -3,11 +3,11 @@ Type: Package
 Title: Compiling the NHL Real Time Scoring System Database for easy use in R
 Version: 1.10.10
 Date: 2017-01-25
-Author: A.C. Thomas [aut], Samuel L. Ventura [aut], Philip Bulsink [ctb]
-Maintainer: A.C. Thomas <act@acthomas.ca>,
-    Philip Bulsink <bulsinkp@gmail.com>
+Author: A.C. Thomas [aut], Samuel L. Ventura [aut]
+Maintainer: A.C. Thomas <act@acthomas.ca>
 Depends:
-    R (>= 2.15.0),
+    R (>= 3.0.0),
+    plyr,
     dplyr
 Imports:
     RCurl,

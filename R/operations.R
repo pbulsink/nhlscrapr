@@ -1,3 +1,6 @@
+### Patched for full.game.database
+### for A.C. Thomas's nhlscrapr package version 1.8 ( act@acthomas.ca )
+### by Jack Davis 2016-04-18 ( jackd@sfu.ca )
 
 # Things you can do with the big grand.data object and unique roster.
 
@@ -476,18 +479,17 @@ team.table <- function (games.aug) {
 #games[games$season == "20132014" & !is.na(games$away.expectedgoals),]
 
 
-player.summary <- function (grand.data, roster.unique) {
-  #grand.data=recent.data
-  
+### Fixed some indexing crashes, and some crashes for players with 0 events 
+player.summary = function (grand.data, roster.unique) 
+{
   events <- c("PENL", "SHOT", "GOAL", "MISS", "BLOCK")
-  #player in event (1,2,3); player on ice for; player on ice against. 5 deep.
-
   columns <- 3 + c(5:16, 18:20, 28:29)
   involved.players <- NULL
-  for (cc in columns) involved.players <- unique(c(involved.players, grand.data[, cc]))
+  for (cc in columns) involved.players <- unique(c(involved.players, 
+                                                   grand.data[, cc]))
   involved.players <- sort(involved.players)
-  output <- array(0, c(length(involved.players), length(events), 5))
-  
+  output <- array(0, c(length(involved.players), length(events), 
+                       5))
   for (ee in events) {
     message(paste("Matching", ee))
     little.data <- grand.data[grand.data$etype == ee, ]
@@ -502,15 +504,16 @@ player.summary <- function (grand.data, roster.unique) {
       {
         evs <- table(little.data[little.data$ev.team ==  little.data$hometeam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
-	evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
-	rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+        evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+        rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
         output[rws, which(ee == events), 5] <- output[rws, which(ee == events), 5] + evs
-							
+        
+        
         evs <- table(little.data[little.data$ev.team == little.data$awayteam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
-	evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
-	rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
-			
+        evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+        rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+        
         output[rws, which(ee == events), 4] <- output[rws, which(ee == events), 4] + evs
       }
       for (cc in which(names(grand.data) %in%  c("h1", "h2", "h3", "h4", "h5", "h6",  "home.G")))  ## patched this line, cc is an index now - JD
@@ -518,13 +521,13 @@ player.summary <- function (grand.data, roster.unique) {
         evs <- table(little.data[little.data$ev.team == little.data$hometeam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
         evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
-	rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+        rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
         output[rws, which(ee == events), 4] <- output[rws,  which(ee == events), 4] + evs
-              
-	evs <- table(little.data[little.data$ev.team == little.data$awayteam, cc])
+        
+        evs <- table(little.data[little.data$ev.team == little.data$awayteam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
         evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
-	rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
+        rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
         output[rws, which(ee == events), 5] <- output[rws, which(ee == events), 5] + evs
       }
     }

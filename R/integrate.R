@@ -1,4 +1,7 @@
-
+### Patched for player.summary
+### for A.C. Thomas's nhlscrapr package version 1.8 ( act@acthomas.ca )
+### by Jack Davis 2016-04-18 ( jackd@sfu.ca )
+### and by Phil Bulsink 2017-02-10 ( bulsinkp@gmail.com )
 
 #display.html <- function(season, gcode, folder="nhlr-data") {load(paste0(folder,"/",season,"-",gcode,".RData")); write.table(game.rec$es, "es1.html", row.names=FALSE, col.names=FALSE, quote=FALSE); write.table(game.rec$pl, "pl1.html", row.names=FALSE, col.names=FALSE, quote=FALSE); system(paste("google-chrome es1.html"), wait=FALSE); system(paste("google-chrome pl1.html"), wait=FALSE)}
 
@@ -37,90 +40,91 @@ fold.frames <- function(frame.list) {
 
 
 # Produce the database of games. Add on extra seasons if desired.
-full.game.database <- function (extra.seasons = 0) 
+full.game.database = function (extra.seasons = 0) 
 {
-    game.roster <- NULL
-    seasons <- c("20022003", "20032004", "20052006", "20062007", "20072008", "20082009", "20092010", "20102011", "20112012", "20122013", "20132014", "20142015", "20152016")
-    if (extra.seasons > 0) 
-	{
-        seasons <- c(seasons, paste(2015 + 1:extra.seasons, 2016 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20162017 - PB
-	}
-	
-	### Patched: bad.game.list now include many NULLs for additional seasons.
-	### 		Reason: R doesn't allow adding NULL elements to a list after the line has been instantiated. - JD
-    games <- c(rep(1230, 9), 720, 1230, 1230, 1230, rep(1230, extra.seasons))
-    bad.game.list <- list(c(1:127, 134, 135, 582, 598, 872), 
-        c(10, 251, 453, 456, 482, 802, 1205), c(18, 140, 127, 
-            234, 298, 458, 974), c(1024), c(1178), c(259, 409, 
-            1077), c(81, 827, 836, 857, 863, 874, 885), c(124, 
-            429), c(259), c(), c(), c(), c(), c(), c(), c(), c(), c(),
-			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
-			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
-			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
-			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
-			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
-			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
-			c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c())
-			
-			
-	bad.game.list = bad.game.list[1:length(seasons)] ### Patched: Removes extraneous elements rather than adding on NULLs - JD
-	
-    playoff.series <- c("11", "12", "13", "14", "15", "16", "17", 
-        "18", "21", "22", "23", "24", "31", "32", "41")
-    gnum <- paste0("0", c(t(outer(playoff.series, 1:7, paste0))))
-    for (ss in 1:length(seasons)) 
-	{
-        gn1 <- as.character(1:games[ss])
-        while (any(nchar(gn1) < 4)) gn1[nchar(gn1) < 4] <- paste0("0", 
-            gn1[nchar(gn1) < 4])
-        df1 <- data.frame(season = seasons[ss], session = c(rep("Regular", 
-            games[ss]), rep("Playoffs", length(gnum))), gamenumber = c(gn1, 
-            gnum), gcode = "", status = 1, valid = c(!(1:games[ss] %in% 
-            bad.game.list[[ss]]), rep(TRUE, length(gnum))), awayteam = "", 
-            hometeam = "", awayscore = "", homescore = "", date = "", 
-            game.start = "", game.end = "", periods = 0, stringsAsFactors = FALSE)
-        game.roster <- rbind(game.roster, df1)
-    }
-	
-	
-    game.roster[, 1] <- as.character(game.roster[, 1])
-    game.roster[, 2] <- as.character(game.roster[, 2])
-    game.roster$gcode <- paste0(2 + 1 * (game.roster$session == 
-        "Playoffs"), game.roster$gamenumber)
-    game.roster$status[!game.roster$valid] <- 0
-    game.roster <- game.roster[, colnames(game.roster) != "valid"]
-    playoff.series.lengths <- c(
-        4, 4, 6, 7, 7, 7, 6, 4,  5, 7, 7, 5,  6, 6,  6, #2002-2003
-        6, 5, 5, 6, 7, 6, 4, 7,  7, 6, 5, 6,  7, 7,  4, #2003-2004
-        7, 5, 7, 5, 7, 6, 5, 7,  5, 4, 6, 6,  6, 7,  6, #2005-2006
-        7, 5, 6, 4, 6, 6, 5, 7,  5, 5, 5, 6,  4, 7,  5, #2006-2007
-        7, 5, 6, 4, 5, 6, 5, 7,  5, 6, 5, 6,  5, 5,  6, #2007-2008
-        5, 7, 4, 7, 5, 6, 7, 6,  6, 5, 5, 4,  6, 5,  6, #2008-2009
-        6, 4, 7, 7, 6, 6, 6, 7,  7, 7, 5, 6,  5, 4,  6, #2009-2010
-        5, 7, 7, 7, 7, 6, 4, 6,  4, 4, 6, 7,  7, 5,  7, #2010-2011
-        7, 7, 7, 6, 5, 5, 6, 5,  7, 5, 4, 5,  6, 5,  6, #2011-2012
-        6, 5, 7, 7, 5, 7, 4, 6,  5, 5, 7, 7,  4, 5,  6, #2012-2013
-        5, 4, 6, 7, 7, 6, 6, 7,  7, 7, 6, 7,  6, 7,  5, #2013-2014
-        6, 7, 5, 7, 6, 6, 4, 6,  6, 7, 4, 5,  7, 7,  6, #2014-2015 - PB
-        6, 5, 6, 5, 6, 7, 7, 5,  5, 6, 7, 7,  7, 6,  6, #2015-2016 - PB
-        rep(7, 15 * (extra.seasons)))
-    sequence.seven <- function(nn) c(rep(1, nn), rep(0, 7 - nn))
-    playoff.status <- c(sapply(playoff.series.lengths, sequence.seven))
-    game.roster$status[game.roster$session == "Playoffs"] <- playoff.status
-    bad.playoff <- matrix(c("20032004", "30134", "20052006", 
-        "30233"), nrow = 2)
-    for (kk in 1:dim(bad.playoff)[2]) game.roster$status[game.roster$season == 
-        bad.playoff[1, kk] & game.roster$gcode == bad.playoff[2, 
-        kk]] <- 0
-    gamecols <- match(paste0("20142015", as.character(nhlscrapr::date201415$gcode)), 
-        paste0(game.roster$season, game.roster$gcode))
-    game.roster$awayteam[gamecols] <- as.character(nhlscrapr::date201415$awayteam)
-    game.roster$hometeam[gamecols] <- as.character(nhlscrapr::date201415$hometeam)
-    unplayed <- which(game.roster$game.start[gamecols] == "")
-    game.roster$game.start[gamecols[unplayed]] <- paste(as.character(nhlscrapr::date201415$StartET[unplayed]), 
-        "ET")
-    game.roster$date[gamecols[unplayed]] <- as.character(nhlscrapr::date201415$GameDate[unplayed])
-    return(game.roster)
+  game.roster <- NULL
+  seasons <- c("20022003", "20032004", "20052006", "20062007", "20072008", "20082009", "20092010", "20102011", "20112012", "20122013", "20132014", "20142015", "20152016", "20162017")
+  if (extra.seasons > 0) 
+  {
+    seasons <- c(seasons, paste(2017 + 1:extra.seasons, 2018 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20172018 - PB
+  }
+  
+  ### Patched: bad.game.list now include many NULLs for additional seasons.
+  ### 		Reason: R doesn't allow adding NULL elements to a list after the line has been instantiated. - JD
+  games <- c(rep(1230, 9), 720, 1230, 1230, 1230, 1230, rep(1230, extra.seasons))
+  bad.game.list <- list(c(1:127, 134, 135, 582, 598, 872), 
+                        c(10, 251, 453, 456, 482, 802, 1205), 
+                        c(18, 140, 127, 234, 298, 458, 974), 
+                        c(1024), c(1178), c(259, 409, 1077), 
+                        c(81, 827, 836, 857, 863, 874, 885), 
+                        c(124, 429), c(259), 
+                        c(), c(), c(), c(), c(), c(), c(), c(), c(),
+                        c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+                        c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+                        c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+                        c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+                        c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+                        c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
+                        c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c())
+  
+  
+  bad.game.list = bad.game.list[1:length(seasons)] ### Patched: Removes extraneous elements rather than adding on NULLs - JD
+  
+  playoff.series <- c("11", "12", "13", "14", "15", "16", "17", 
+                      "18", "21", "22", "23", "24", "31", "32", "41")
+  gnum <- paste0("0", c(t(outer(playoff.series, 1:7, paste0))))
+  for (ss in 1:length(seasons)) 
+  {
+    gn1 <- as.character(1:games[ss])
+    while (any(nchar(gn1) < 4)) gn1[nchar(gn1) < 4] <- paste0("0", 
+                                                              gn1[nchar(gn1) < 4])
+    df1 <- data.frame(season = seasons[ss], session = c(rep("Regular", 
+                                                            games[ss]), rep("Playoffs", length(gnum))), gamenumber = c(gn1, 
+                                                                                                                       gnum), gcode = "", status = 1, valid = c(!(1:games[ss] %in% 
+                                                                                                                                                                    bad.game.list[[ss]]), rep(TRUE, length(gnum))), awayteam = "", 
+                      hometeam = "", awayscore = "", homescore = "", date = "", 
+                      game.start = "", game.end = "", periods = 0, stringsAsFactors = FALSE)
+    game.roster <- rbind(game.roster, df1)
+  }
+  
+  
+  game.roster[, 1] <- as.character(game.roster[, 1])
+  game.roster[, 2] <- as.character(game.roster[, 2])
+  game.roster$gcode <- paste0(2 + 1 * (game.roster$session == 
+                                         "Playoffs"), game.roster$gamenumber)
+  game.roster$status[!game.roster$valid] <- 0
+  game.roster <- game.roster[, colnames(game.roster) != "valid"]
+  playoff.series.lengths <- c(5, 5, 6, 7, 6, 4, 7, 7,  6, 5, 6, 7,  7, 4,  7, #20022003
+                              5, 7, 5, 7, 6, 5, 7, 5,  4, 6, 6, 6,  7, 6,  7, #20032004
+                              5, 6, 4, 6, 6, 5, 7, 5,  5, 5, 6, 4,  7, 5,  7, #20052006
+                              5, 6, 4, 5, 6, 5, 7, 5,  6, 5, 6, 5,  5, 6,  5, #20062007
+                              7, 4, 7, 5, 6, 7, 6, 6,  5, 5, 4, 6,  5, 6,  6, #20072008
+                              4, 7, 7, 6, 6, 4, 4, 6,  7, 7, 7, 6,  4, 5,  7, #20082009
+                              7, 5, 6, 6, 6, 6, 6, 7,  7, 7, 5, 6,  5, 4,  6, #20092010
+                              5, 7, 7, 7, 7, 6, 4, 6,  4, 4, 6, 7,  7, 5,  7, #20102011
+                              7, 7, 7, 6, 5, 5, 6, 5,  7, 5, 4, 5,  6, 5,  6, #20112012
+                              6, 5, 7, 7, 5, 7, 4, 6,  5, 5, 7, 7,  4, 5,  6, #20132014
+                              5, 4, 6, 7, 7, 6, 6, 7,  7, 7, 6, 7,  6, 7,  5, #20142015
+                              6, 7, 5, 7, 6, 6, 4, 6,  6, 7, 4, 5,  7, 7,  6, #20152016
+                              rep(7, 15), #20162017
+                              rep(7, 15 * (extra.seasons)))
+  sequence.seven <- function(nn) c(rep(1, nn), rep(0, 7 - nn))
+  playoff.status <- c(sapply(playoff.series.lengths, sequence.seven))
+  game.roster$status[game.roster$session == "Playoffs"] <- playoff.status
+  bad.playoff <- matrix(c("20032004", "30134", "20052006", 
+                          "30233"), nrow = 2)
+  for (kk in 1:dim(bad.playoff)[2]) game.roster$status[game.roster$season == 
+                                                         bad.playoff[1, kk] & game.roster$gcode == bad.playoff[2, 
+                                                                                                               kk]] <- 0
+  gamecols <- match(paste0("20142015", as.character(nhlscrapr::date201415$gcode)), 
+                    paste0(game.roster$season, game.roster$gcode))
+  game.roster$awayteam[gamecols] <- as.character(nhlscrapr::date201415$awayteam)
+  game.roster$hometeam[gamecols] <- as.character(nhlscrapr::date201415$hometeam)
+  unplayed <- which(game.roster$game.start[gamecols] == "")
+  game.roster$game.start[gamecols[unplayed]] <- paste(as.character(nhlscrapr::date201415$StartET[unplayed]), 
+                                                      "ET")
+  game.roster$date[gamecols[unplayed]] <- as.character(nhlscrapr::date201415$GameDate[unplayed])
+  return(game.roster)
 }
 
 
@@ -648,7 +652,7 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
     message("Overriding existing game table to create one with specified seasons.")
     eligible.seasons <- c("20022003", "20032004", "20052006", 
                           "20062007", "20072008", "20082009", "20092010", "20102011", 
-                          "20112012", "20122013", "20132014", "20142015", "20152016")
+                          "20112012", "20122013", "20132014", "20142015", "20152016", "20162017")
     if (extra.seasons > 0) 
     {
       eligible.seasons <- c(seasons, paste(2015 + 1:extra.seasons, 2016 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20162017 - PB
@@ -693,7 +697,7 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
           next
         }
       }
-      else next
+      else next  # else next?
       tryme <- try({
         game.info <- retrieve.game(sub.games$season[kk], 
                                    sub.games$gcode[kk], rdata.folder, force = FALSE)
@@ -779,24 +783,25 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
   return(TRUE)
 }
 
+require(plyr)
 aggregate.roster.by.name <- function(roster)
 {
 
-	roster_name = ddply(roster, .(firstlast), summarize,
-				pos = pos[1],
-				last = last[1],
-				first = first[1],
-				numfirstlast = numfirstlast[1],
-				firstlast = firstlast[1],
-				index = index[1],
-				player.id = player.id[1],
-				pC = sum(pC),
-				pL = sum(pL),
-				pR = sum(pR),
-				pD = sum(pD),
-				pG = sum(pG)	
-				)
-	
-	roster_name = roster_name[order(roster_name$player.id),]
-	return(roster_name)
+  roster_name = ddply(roster, .(firstlast), summarize,
+                      pos = pos[1],
+                      last = last[1],
+                      first = first[1],
+                      numfirstlast = numfirstlast[1],
+                      firstlast = firstlast[1],
+                      index = index[1],
+                      player.id = player.id[1],
+                      pC = sum(pC),
+                      pL = sum(pL),
+                      pR = sum(pR),
+                      pD = sum(pD),
+                      pG = sum(pG)	
+  )
+  
+  roster_name = roster_name[order(roster_name$player.id),]
+  return(roster_name)
 }
