@@ -52,13 +52,21 @@ full.game.database = function (extra.seasons = 0)
   ### Patched: bad.game.list now include many NULLs for additional seasons.
   ### 		Reason: R doesn't allow adding NULL elements to a list after the line has been instantiated. - JD
   games <- c(rep(1230, 9), 720, 1230, 1230, 1230, 1230, rep(1230, extra.seasons))
-  bad.game.list <- list(c(1:127, 134, 135, 582, 598, 872),
-                        c(10, 251, 453, 456, 482, 802, 1205),
-                        c(18, 140, 127, 234, 298, 458, 974),
-                        c(1024), c(1178), c(259, 409, 1077),
-                        c(81, 827, 836, 857, 863, 874, 885),
-                        c(124, 429), c(259),
-                        c(), c(), c(), c(), c(), c(), c(), c(), c(),
+  bad.game.list <- list(c(1:127, 134, 135, 582, 598, 872), #20022003
+                        c(10, 251, 453, 456, 482, 802, 1205), #20032004
+                        c(18, 140, 127, 234, 298, 458, 974), #20052006
+                        c(1024), #20062007
+                        c(1178), #20072008
+                        c(259, 409, 1077), #20082009
+                        c(81, 827, 836, 857, 863, 874, 885), #20092010
+                        c(124, 429), #20102011
+                        c(259), #20112012
+                        c(), #20122013
+                        c(), #20132014
+                        c(), #20142015
+                        c(), #20150216
+                        c(477), #20162017
+                        #Extra buffer season
                         c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
                         c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
                         c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
