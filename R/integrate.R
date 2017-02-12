@@ -11,34 +11,6 @@
   packageStartupMessage("nhlscrapr v 1.10.9")
 }
 
-fold.frames <- function(frame.list) {
-  #frame.list = new.pbp.2
-
-    if (length(frame.list) > 1) repeat {
-        if (length(frame.list) == 1) break
-        hold.list <- list()
-        for (kk in 1:floor(length(frame.list)/2))
-            hold.list[[kk]] <- tryCatch(
-                rbind(frame.list[[2*kk-1]], frame.list[[2*kk]]),
-                warning = function(war) message(paste(kk, war)),
-                error = function(err) message(paste(kk, err)),
-                finally = {})
-        if (length(frame.list) %% 2 == 1)
-            if (length(hold.list) > 0)
-                hold.list[[length(hold.list)]] <- rbind(hold.list[[length(hold.list)]],
-                                                        frame.list[[2*kk+1]]) else hold.list <- frame.list[2*kk+1]
-
-        frame.list <- hold.list
-        rm(hold.list)
-        message ("Folding data frames. Total: ",length(frame.list))
-        if (length(frame.list) == 1) break
-    }
-
-    return(frame.list[[1]])
-}
-
-
-
 # Produce the database of games. Add on extra seasons if desired.
 full.game.database = function (extra.seasons = 0)
 {
@@ -111,8 +83,9 @@ full.game.database = function (extra.seasons = 0)
                               7, 5, 6, 6, 6, 6, 6, 7,  7, 7, 5, 6,  5, 4,  6, #20092010
                               5, 7, 7, 7, 7, 6, 4, 6,  4, 4, 6, 7,  7, 5,  7, #20102011
                               7, 7, 7, 6, 5, 5, 6, 5,  7, 5, 4, 5,  6, 5,  6, #20112012
-                              6, 5, 7, 7, 5, 7, 4, 6,  5, 5, 7, 7,  4, 5,  6, #20132014
-                              5, 4, 6, 7, 7, 6, 6, 7,  7, 7, 6, 7,  6, 7,  5, #20142015
+                              6, 5, 7, 7, 5, 7, 4, 6,  5, 5, 7, 7,  4, 5,  6, #20122013
+                              5, 4, 6, 7, 7, 6, 6, 7,  7, 7, 6, 7,  6, 7,  5, #20132014
+                              6, 7, 5, 7, 6, 6, 4, 6,  6, 7, 4, 5,  7, 7,  6, #20142015
                               6, 5, 6, 5, 6, 7, 7, 5,  5, 6, 7, 7,  7, 6,  6, #20152016
                               rep(7, 15), #20162017
                               rep(7, 15 * (extra.seasons)))
@@ -637,6 +610,7 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
   if (file.exists(paste0(output.folder, "/nhlscrapr-core.RData"))) {
     message("Loading game and player data.")
     load(paste0(output.folder, "/nhlscrapr-core.RData"))
+    roster.master<-as.data.frame(roster.master, stringsAsFactors = FALSE)
   }
   else {
     message("Creating game table and player data.")
@@ -705,7 +679,7 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
           next
         }
       }
-      else next  # else next?
+      else next
       tryme <- try({
         game.info <- retrieve.game(sub.games$season[kk],
                                    sub.games$gcode[kk], rdata.folder, force = FALSE)
@@ -753,7 +727,7 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
       })
       saveRDS(new.pbp.2, file = "new.pbp.2.RDS")
       saveRDS(new.pbp, file="new.pbp.RDS")
-      secondary.data <- fold.frames(new.pbp.2)
+      secondary.data <- plyr::rbind.fill(new.pbp.2)
       secondary.data$adjusted.distance <- NA
       secondary.data$shot.prob.distance <- NA
       secondary.data$prob.goal.if.ongoal <- NA
@@ -791,11 +765,10 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
   return(TRUE)
 }
 
-require(plyr)
 aggregate.roster.by.name <- function(roster)
 {
 
-  roster_name = ddply(roster, .(firstlast), summarize,
+  roster_name = plyr::ddply(roster, .(firstlast), summarize,
                       pos = pos[1],
                       last = last[1],
                       first = first[1],
