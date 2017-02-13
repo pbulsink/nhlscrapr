@@ -1,50 +1,50 @@
 
 
 absolute.spectrum <- function (...) {
-  par(mar=c(0,3,0,0))
+  graphics::par(mar=c(0,3,0,0))
   yy <- 0:30/100
   xlim1 <- 0.3*c(-0.5, 0.5)/7/1.7
-  plot (rep(0, length(yy)), yy, ty="n", xlim=xlim1, axes=FALSE, ...) #pch=20, cex=3, col=absolute.binning(xx), 
-  polygon(hexagon.coords.auto(cbind(0,yy)),
+  graphics::plot (rep(0, length(yy)), yy, ty="n", xlim=xlim1, axes=FALSE, ...) #pch=20, cex=3, col=absolute.binning(xx),
+  graphics::polygon(hexagon.coords.auto(cbind(0,yy)),
           col=absolute.binning(yy),
           border=0)
-  axis(2, seq(0, 0.3, by=0.03))
+  graphics::axis(2, seq(0, 0.3, by=0.03))
 }
 
 relative.spectrum <- function (...) {
-  par(mar=c(0,3,0,0))
+  graphics::par(mar=c(0,3,0,0))
   yy <- seq(0, 30/12, length=30)
   xlim1 <- 30/12*c(-0.5, 0.5)/7/1.7
-  plot (rep(0, length(yy)), yy, ty="n", xlim=xlim1, axes=FALSE, ...)   #pch=20, cex=3, col=relative.binning(xx), 
-  polygon(hexagon.coords.auto(cbind(0,yy)),
+  graphics::plot (rep(0, length(yy)), yy, ty="n", xlim=xlim1, axes=FALSE, ...)   #pch=20, cex=3, col=relative.binning(xx),
+  graphics::polygon(hexagon.coords.auto(cbind(0,yy)),
           col=relative.binning(yy),
           border=0)
-  abline(h=1, col=2, lwd=2)
-  axis(2, seq(0, 3, by=0.4))
+  graphics::abline(h=1, col=2, lwd=2)
+  graphics::axis(2, seq(0, 3, by=0.4))
 }
 
 z.score.spectrum <- function (...) {
-  par(mar=c(0,3,0,0))
+  graphics::par(mar=c(0,3,0,0))
   yy <- seq(-8, 8, length=30)
   xlim1 <- 16*c(-0.5, 0.5)/7/1.7
-  plot (rep(0, length(yy)), yy, ty="n", xlim=xlim1, axes=FALSE, ...)   #pch=20, cex=3, col=relative.binning(xx), 
-  polygon(hexagon.coords.auto(cbind(0,yy)),
+  graphics::plot (rep(0, length(yy)), yy, ty="n", xlim=xlim1, axes=FALSE, ...)   #pch=20, cex=3, col=relative.binning(xx),
+  graphics::polygon(hexagon.coords.auto(cbind(0,yy)),
           col=z.score.binning(yy),
           border=0)
-  abline(h=c(-2,2), col=2, lwd=2)
-  axis(2, seq(-8, 8, by=2))
+  graphics::abline(h=c(-2,2), col=2, lwd=2)
+  graphics::axis(2, seq(-8, 8, by=2))
 }
 
 diff.spectrum <- function (...) {
-  par(mar=c(0,3,0,0))
+  graphics::par(mar=c(0,3,0,0))
   yy <- seq(-8, 8, length=30)/10
   xlim1 <- 16*c(-0.5, 0.5)/7/1.7/10
-  plot (rep(0, length(yy)), yy, ty="n", xlim=xlim1, axes=FALSE, ...)   #pch=20, cex=3, col=relative.binning(xx), 
-  polygon(hexagon.coords.auto(cbind(0,yy)),
+  graphics::plot (rep(0, length(yy)), yy, ty="n", xlim=xlim1, axes=FALSE, ...)   #pch=20, cex=3, col=relative.binning(xx),
+  graphics::polygon(hexagon.coords.auto(cbind(0,yy)),
           col=diff.binning(yy),
           border=0)
-  abline(h=c(-2,2), col=2, lwd=2)
-  axis(2, seq(-8, 8, by=2)/10)
+  graphics::abline(h=c(-2,2), col=2, lwd=2)
+  graphics::axis(2, seq(-8, 8, by=2)/10)
 }
 
 z.score.binomial <- function (m1, m2) {
@@ -76,11 +76,11 @@ absolute.binning <- function (frac) {
                  "#00DD00",
                  "#00AA00", "#007700", "#003300")
   my.colors[ordinal.maker (frac, c(0.03, 0.06, 0.09, 0.12, 0.16, 0.24)) + 1]
-  
+
 #  output <- rep(my.colors[1], length(frac))
 #  for (kk in 1:(length(my.colors)-1)) output[frac > (kk-1)/30] <- my.colors[kk+1]
 #  return(output)
-  
+
 }
 
 

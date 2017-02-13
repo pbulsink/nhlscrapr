@@ -8,12 +8,9 @@ Maintainer: A.C. Thomas <act@acthomas.ca>
 Depends:
     R (>= 3.0.0),
     plyr,
-    dplyr
-Imports:
+    dplyr,
     RCurl,
-    rjson,
-    biglm,
-    bitops
+    rjson
 Description: Compiling the NHL Real Time Scoring System Database for easy use in
     R.
 License: GPL (>= 3)

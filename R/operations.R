@@ -7,16 +7,16 @@
 #Block the seasons into 4. This will make it easier to add new games as time goes along.
 season.block <- function (season) {
   year <- as.numeric(substr(season,1,4))
-  1 + 1*(year >= 2005) + 1*(year >= 2007) + 1*(year >= 2009) + 1*(year >= 2011) + 1*(year >= 2013) 
-  
+  1 + 1*(year >= 2005) + 1*(year >= 2007) + 1*(year >= 2009) + 1*(year >= 2011) + 1*(year >= 2013)
+
 }
 
 compare.CDF <- function (original, target, range=1:200) {
   #range=1:200
-  
+
   original <- sort(original); target <- sort(target)
-  oq <- quantile(original, seq(0,1,by=0.001), na.rm=TRUE)
-  tq <- quantile(target, seq(0,1,by=0.001), na.rm=TRUE)
+  oq <- stats::quantile(original, seq(0,1,by=0.001), na.rm=TRUE)
+  tq <- stats::quantile(target, seq(0,1,by=0.001), na.rm=TRUE)
 
   values <- sapply(range, function(rr) mean(tq[oq==rr]))
   if (is.na(values[1])) values[1] <- range[1]
@@ -39,7 +39,7 @@ make.adjusted.distance.homeaway.table <- function (shots.in) { #,
   shots.split <- lapply(seasonblocks,
                         function (bb) shots.in[shots.in$seasonblock==bb,
                                                c("type", "ev.team", "hometeam", "awayteam", "distance")])
-  
+
   split.table <- expand.grid (seasonblock=seasonblocks, type=unique(shots.in$type),
                               teams=unique(shots.in$hometeam), stringsAsFactors = FALSE)
 
@@ -54,19 +54,19 @@ make.adjusted.distance.homeaway.table <- function (shots.in) { #,
                                                 shots.split[[prop[[1]]]]$awayteam == prop[[3]]]
     compare.CDF (original, target)
   })
-  
+
   return (list(split.table=split.table, quantile.adjust=quantile.adjust))
 }
 
 
 update.adjusted.distance <- function (shots.in,
                                       split.object) {
-  
+
   #shots.in=shot.data; split.object=distance.adjust
   shots.in$seasonblock <- season.block(shots.in$season)
   seasonblocks <- 1:max(shots.in$seasonblock)
   shots.in$adjusted.distance <- shots.in$distance
-  
+
   shots.split <- lapply(seasonblocks,
                         function (bb) shots.in[shots.in$seasonblock==bb,
                                                c("type", "ev.team", "hometeam", "awayteam",
@@ -82,10 +82,10 @@ update.adjusted.distance <- function (shots.in,
       split.object$quantile.adjust[shots.split[[prop[[1]]]]$distance[rows], rr]
   }
 
-  for (bb in seasonblocks) 
+  for (bb in seasonblocks)
     shots.in$adjusted.distance[shots.in$seasonblock==bb] <- shots.split[[bb]]$adjusted.distance
   shots.in$adjusted.distance[shots.in$adjusted.distance > 200] <- 200
-  
+
   return(shots.in$adjusted.distance)
 
 }
@@ -94,10 +94,10 @@ update.adjusted.distance <- function (shots.in,
 create.adjusted.distance <- function (sub.data, distance.adjust=NULL) {   #, split.table
   ## load ("../../nhlscrapr-probs-0.RData")
   ## sub.data=grand.data; distance.adjust=NULL
-  
+
   message ("Correcting for Distance Anomalies.")
   sub.data$adjusted.distance <- NA
-  
+
   etypes <- c("GOAL","SHOT","MISS")
   shot.rows <- which (sub.data$etype %in% etypes)
   shot.data <- sub.data[shot.rows,
@@ -121,7 +121,7 @@ create.adjusted.distance <- function (sub.data, distance.adjust=NULL) {   #, spl
 
 impute.miss.xy <- function (grand.data) {
   #load ("ainty.RData")
-  
+
   message ("Imputing missing shot locations using saved shots-on-goal.")
   sub.data <- grand.data[,c("etype","type","adjusted.distance","xcoord","ycoord")]
 
@@ -132,9 +132,9 @@ impute.miss.xy <- function (grand.data) {
 
   for (dd in 1:200) {
     if (dd %% 10 == 0) message ("Imputing distance from net: ", dd)
-    shotset <- which(tiny$adjusted.distance == dd & !is.na(tiny$xcoord) & !is.na(tiny$ycoord)) #tiny$etype=="SHOT" & 
-    missset <- which(tiny$adjusted.distance == dd & (is.na(tiny$xcoord) | is.na(tiny$ycoord)))  #tiny$etype=="MISS" & 
-   
+    shotset <- which(tiny$adjusted.distance == dd & !is.na(tiny$xcoord) & !is.na(tiny$ycoord)) #tiny$etype=="SHOT" &
+    missset <- which(tiny$adjusted.distance == dd & (is.na(tiny$xcoord) | is.na(tiny$ycoord)))  #tiny$etype=="MISS" &
+
     if (length(shotset) > 0 & length(missset) > 0) {
       picks <- sample(shotset, length(missset), replace=TRUE)
       tiny$xcoord[missset] <- tiny$xcoord[picks]
@@ -144,10 +144,10 @@ impute.miss.xy <- function (grand.data) {
 
   grand.data[shot.rows, c("xcoord","ycoord")] <- tiny[, c("xcoord","ycoord")]
   return(grand.data)
-  
+
 }
 
-## par(mfrow=c(2,1)); hist(tiny$adjusted.distance[tiny$etype=="MISS"]);  hist(tiny$adjusted.distance[tiny$etype=="SHOT"]); 
+## graphics::par(mfrow=c(2,1)); graphics::hist(tiny$adjusted.distance[tiny$etype=="MISS"]);  graphics::hist(tiny$adjusted.distance[tiny$etype=="SHOT"]);
 
 
 
@@ -165,12 +165,12 @@ in.triangle <- function (xyp, tr) {
 in.tri.rev <- function (tr=matrix(c(0,0.5,1, 0,1,0), nrow=3), xy.points) in.triangle (xy.points, tr)
 
 pick.section <- function (xy.points) {
- 
+
   in.1 <- apply(nhlscrapr::quadsarray[1:3,,], 3, in.tri.rev, xy.points)
   in.2 <- apply(nhlscrapr::quadsarray[c(1,3,4),,], 3, in.tri.rev, xy.points)
   picks <- in.1 | in.2
   picks[is.na(picks)] <- FALSE
-  
+
   picker <- function (row) if (sum(row)>0) min(which(row)) else 0
   sections <- apply (picks, 1, picker)
   return(sections)
@@ -188,31 +188,31 @@ expit <- function(x) exp(x)/(1+exp(x))
 prob.score.simple.objects <- function (shots.in) {
   #shots.in = shot.data[rows,]
   #distance=shots.in$adjusted.distance
-  
+
   shots.in <- shots.in[shots.in$etype %in% c("SHOT","GOAL","MISS"),]
   df1 <- data.frame (cut.distance = cut (shots.in$adjusted.distance, c(seq(0,100,by=5), Inf), include.lowest = TRUE),
                      its.a.sog = 1*(shots.in$etype %in% c("SHOT","GOAL")),
                      its.a.goal = 1*(shots.in$etype == "GOAL"))
   df2 <- df1[df1$its.a.sog == 1,]
-    
-  sog.obj <- suppressWarnings(bigglm (its.a.sog ~ cut.distance, family=binomial(link=logit), data=df1))
-  glm.obj <- suppressWarnings(bigglm (its.a.goal ~ cut.distance, family=binomial(link=logit), data=df2))
 
-  shot.if.ongoal <- expit(predict(sog.obj, df1))
+  sog.obj <- suppressWarnings(bigglm (its.a.sog ~ cut.distance, family=stats::binomial(link=logit), data=df1))
+  glm.obj <- suppressWarnings(bigglm (its.a.goal ~ cut.distance, family=stats::binomial(link=logit), data=df2))
+
+  shot.if.ongoal <- expit(stats::predict(sog.obj, df1))
   df1$cut.distance[!(df1$cut.distance %in% unique(df2$cut.distance))] <- NA
-  goal.if.ongoal <- expit(predict(glm.obj, df1))
- 
+  goal.if.ongoal <- expit(stats::predict(glm.obj, df1))
+
   return(list(sog.obj=sog.obj, glm.obj=glm.obj,
               shot.if.ongoal=shot.if.ongoal,
               goal.if.ongoal=goal.if.ongoal))
-  
+
 }
 
 
 shot.sub.rows <- function (shot.data, seasonblock, shottype, condition) {
 
   shot.data$seasonblock <- season.block(shot.data$season)
-  
+
   rows <- NULL
   if (condition == "homeESSH")
     rows <- which(shot.data$home.sk <= shot.data$away.sk &
@@ -226,17 +226,17 @@ shot.sub.rows <- function (shot.data, seasonblock, shottype, condition) {
                   shot.data$seasonblock == seasonblock &
                   shot.data$type == shottype &
                   shot.data$away.G > 1 & shot.data$home.G > 1)
-  if (condition == "homeEN")  #home team pulled their goalie. There are no "SHOT"s 
+  if (condition == "homeEN")  #home team pulled their goalie. There are no "SHOT"s
     rows <- which(shot.data$ev.team == shot.data$hometeam &
                   shot.data$seasonblock == seasonblock &
                   shot.data$type == shottype &
                   shot.data$away.G > 1 & shot.data$home.G == 1)
-  if (condition == "homeOnEN")  #home team pulled their goalie. There are no "SHOT"s 
+  if (condition == "homeOnEN")  #home team pulled their goalie. There are no "SHOT"s
     rows <- which(shot.data$ev.team == shot.data$hometeam &
                   shot.data$seasonblock == seasonblock &
                   shot.data$type == shottype &
                   shot.data$away.G == 1 & shot.data$home.G > 1)
-  
+
   if (condition == "awayESSH")
     rows <- which(shot.data$home.sk >= shot.data$away.sk &
                   shot.data$ev.team == shot.data$awayteam &
@@ -266,16 +266,16 @@ shot.sub.rows <- function (shot.data, seasonblock, shottype, condition) {
 
 make.shot.probs.simple <- function (grand.data) {
   #load("nhlscrapr-probs.RData")
-  
+
   if (!("shot.prob.distance" %in% colnames(grand.data))) grand.data$shot.prob.distance <- NA
   if (!("prob.goal.if.ongoal" %in% colnames(grand.data))) grand.data$prob.goal.if.ongoal <- NA
-  
+
   etypes <- c("GOAL","SHOT","MISS")
   shot.rows <- which (grand.data$etype %in% etypes)
   shot.data <- grand.data[shot.rows,]
   shottypes <- unique(shot.data$type)
-  
-  
+
+
   #Get all the unique types.
   shot.tables <- cbind(expand.grid (season.block=1:4,
                                     shottypes=shottypes,
@@ -290,7 +290,7 @@ make.shot.probs.simple <- function (grand.data) {
     message (paste(shot.tables[rr,], collapse=" "))
     rows <- shot.sub.rows(shot.data, shot.tables[rr,1], shot.tables[rr,2], shot.tables[rr,3])
     shot.tables[rr,4] <- length(rows)
-    
+
     result.1 <- try(prob.score.simple.objects (shot.data[rows,]), TRUE)
     if (class(result.1) != "try-error") {
       #prob.ongoal <- result.1[[1]]$fitted.values
@@ -308,15 +308,15 @@ make.shot.probs.simple <- function (grand.data) {
       }
       out.objects[[rr]] <- NULL
     }
-      
+
   }
 
-  
+
   grand.data$shot.prob.distance[shot.rows] <- shot.data$shot.prob.distance
   grand.data$prob.goal.if.ongoal[shot.rows] <- shot.data$prob.goal.if.ongoal
-  
+
   return(list(grand.data=grand.data, scoring.models=out.objects, shot.tables=shot.tables))
-  
+
 }
 
 
@@ -324,12 +324,12 @@ make.shot.probs.simple <- function (grand.data) {
 fit.shot.probs.simple <- function (grand.data,
                                    scoring.models,
                                    shot.tables) {
-  
+
   #load("nhlscrapr-probs.RData"); grand.data
-  
+
   if (!("shot.prob.distance" %in% colnames(grand.data))) grand.data$shot.prob.distance <- NA
   if (!("prob.goal.if.ongoal" %in% colnames(grand.data))) grand.data$prob.goal.if.ongoal <- NA
-  
+
   etypes <- c("GOAL","SHOT","MISS")
   shot.rows <- which (grand.data$etype %in% etypes)
   shot.data <- grand.data[shot.rows,]
@@ -337,7 +337,7 @@ fit.shot.probs.simple <- function (grand.data,
   shot.data$its.a.sog <- 1*(shot.data$etype %in% c("SHOT","GOAL"))
   shot.data$its.a.goal <- 1*(shot.data$etype == "GOAL")
 
-  
+
   for (rr in 1:nrow(shot.tables)) {
 
     message (paste(shot.tables[rr,], collapse=" "))
@@ -345,25 +345,25 @@ fit.shot.probs.simple <- function (grand.data,
 
     if (rr <= length(scoring.models)) if (!is.null(scoring.models[[rr]])) {
 
-      sog.1 <- expit(predict(scoring.models[[rr]][[1]], shot.data[rows,]))
-      gol.1 <- expit(predict(scoring.models[[rr]][[2]], shot.data[rows,]))
-      
+      sog.1 <- expit(stats::predict(scoring.models[[rr]][[1]], shot.data[rows,]))
+      gol.1 <- expit(stats::predict(scoring.models[[rr]][[2]], shot.data[rows,]))
+
       shot.data$prob.goal.if.ongoal[rows] <- gol.1
       shot.data$shot.prob.distance[rows] <- gol.1 * sog.1
-      
+
     } else {
       shot.data$prob.goal.if.ongoal[rows] <- 0
       shot.data$shot.prob.distance[rows] <- 0
     }
-    
+
   }
 
-  
+
   grand.data$shot.prob.distance[shot.rows] <- shot.data$shot.prob.distance
   grand.data$prob.goal.if.ongoal[shot.rows] <- shot.data$prob.goal.if.ongoal
-  
+
   return(grand.data=grand.data)
-  
+
 }
 
 
@@ -372,7 +372,7 @@ fit.shot.probs.simple <- function (grand.data,
 
 game.team.breakdown <- function (single.game.data) {
   #single.game.data=grand.data[grand.data$season=="20132014" & grand.data$gcode=="20001",]
-  
+
   esub.c <- single.game.data[abs(single.game.data$home.score - single.game.data$away.score) <= 1,]
   esub.f <- single.game.data[abs(single.game.data$home.score - single.game.data$away.score) > 1,]
 
@@ -385,29 +385,29 @@ game.team.breakdown <- function (single.game.data) {
               away.go.c=sum(esub.c$etype[esub.c$ev.team==esub.c$awayteam]=="GOAL", na.rm=TRUE),
               home.go.f=sum(esub.f$etype[esub.f$ev.team==esub.f$hometeam]=="GOAL", na.rm=TRUE),
               away.go.f=sum(esub.f$etype[esub.f$ev.team==esub.f$awayteam]=="GOAL", na.rm=TRUE),
-              
+
               home.sh.c=sum(esub.c$etype[esub.c$ev.team==esub.c$hometeam]=="SHOT", na.rm=TRUE),
               away.sh.c=sum(esub.c$etype[esub.c$ev.team==esub.c$awayteam]=="SHOT", na.rm=TRUE),
               home.sh.f=sum(esub.f$etype[esub.f$ev.team==esub.f$hometeam]=="SHOT", na.rm=TRUE),
               away.sh.f=sum(esub.f$etype[esub.f$ev.team==esub.f$awayteam]=="SHOT", na.rm=TRUE),
-              
+
               home.mi.c=sum(esub.c$etype[esub.c$ev.team==esub.c$hometeam]=="MISS", na.rm=TRUE),
               away.mi.c=sum(esub.c$etype[esub.c$ev.team==esub.c$awayteam]=="MISS", na.rm=TRUE),
               home.mi.f=sum(esub.f$etype[esub.f$ev.team==esub.f$hometeam]=="MISS", na.rm=TRUE),
               away.mi.f=sum(esub.f$etype[esub.f$ev.team==esub.f$awayteam]=="MISS", na.rm=TRUE),
-              
+
               home.bl.c=sum(esub.c$etype[esub.c$ev.team==esub.c$hometeam]=="BLOCK", na.rm=TRUE),
               away.bl.c=sum(esub.c$etype[esub.c$ev.team==esub.c$awayteam]=="BLOCK", na.rm=TRUE),
               home.bl.f=sum(esub.f$etype[esub.f$ev.team==esub.f$hometeam]=="BLOCK", na.rm=TRUE),
               away.bl.f=sum(esub.f$etype[esub.f$ev.team==esub.f$awayteam]=="BLOCK", na.rm=TRUE))
 
   retval <- c(retval,
-              sum(retval[seq(5,19,by=2)]), sum(retval[seq(6,20,by=2)]), #corsifor <- 
+              sum(retval[seq(5,19,by=2)]), sum(retval[seq(6,20,by=2)]), #corsifor <-
               sum(retval[seq(5,15,by=2)]), sum(retval[seq(6,16,by=2)]), #fenwickfor
               sum(retval[seq(5,13,by=4)]), sum(retval[seq(6,14,by=4)]), #fenwickclose
               sum(retval[c(1,3)]), sum(retval[c(2,4)])) #weighted
   names(retval)[21:28] <- c("home.corsifor","away.corsifor","home.fenwickfor","away.fenwickfor","home.fenwickclose","away.fenwickclose","home.expectedgoals","away.expectedgoals")
-  
+
   return(retval)
 }
 
@@ -436,7 +436,7 @@ augment.game.stats <- function(grand.data, games) {
     game.sub <- games[rowchoice,]
     event.sub <- grand.data[grand.data$hometeam == tt &
                             grand.data$etype %in% c("GOAL","MISS","SHOT","BLOCK"),]
-    
+
     for (gg in 1:length(rowchoice)) {
       #message(":",tt," ",gg,":")
       single.game.data <- event.sub[event.sub$season == game.sub$season[gg] &
@@ -464,31 +464,35 @@ team.table <- function (games.aug) {
   restable.df <- data.frame(restable)
   #colnames(restable) <- unique(c(games.aug$awayteam, games.aug$hometeam))
   thisplot <- function () {
-    par(mfrow=c(1,3))
-    plot(restable.df$home.expectedgoals, restable.df$home.go.c+restable.df$home.go.f, ty="n"); text(restable.df$home.expectedgoals, restable.df$home.go.c+restable.df$home.go.f, rownames(restable.df)); abline(a=0,b=1,col=2)
-    plot(restable.df$away.expectedgoals, restable.df$away.go.c+restable.df$away.go.f, ty="n"); text(restable.df$away.expectedgoals, restable.df$away.go.c+restable.df$away.go.f, rownames(restable.df)); abline(a=0,b=1,col=2)
-    plot(restable.df$home.expectedgoals - restable.df$away.expectedgoals,
+    graphics::par(mfrow=c(1,3))
+    graphics::plot(restable.df$home.expectedgoals, restable.df$home.go.c+restable.df$home.go.f, ty="n")
+    graphics::text(restable.df$home.expectedgoals, restable.df$home.go.c+restable.df$home.go.f, rownames(restable.df))
+    graphics::abline(a=0,b=1,col=2)
+    graphics::plot(restable.df$away.expectedgoals, restable.df$away.go.c+restable.df$away.go.f, ty="n")
+    graphics::text(restable.df$away.expectedgoals, restable.df$away.go.c+restable.df$away.go.f, rownames(restable.df))
+    graphics::abline(a=0,b=1,col=2)
+    graphics::plot(restable.df$home.expectedgoals - restable.df$away.expectedgoals,
          restable.df$home.go.c+restable.df$home.go.f - restable.df$away.go.c-restable.df$away.go.f - (restable.df$home.expectedgoals - restable.df$away.expectedgoals),
          ty="n");
-    text(restable.df$home.expectedgoals - restable.df$away.expectedgoals,
+    graphics::text(restable.df$home.expectedgoals - restable.df$away.expectedgoals,
          restable.df$home.go.c+restable.df$home.go.f - restable.df$away.go.c-restable.df$away.go.f - (restable.df$home.expectedgoals - restable.df$away.expectedgoals),
          rownames(restable.df));
-         abline(a=0,b=0,col=2)
+    graphics::abline(a=0,b=0,col=2)
   }
 }
 #games[games$season == "20132014" & !is.na(games$away.expectedgoals),]
 
 
-### Fixed some indexing crashes, and some crashes for players with 0 events 
-player.summary = function (grand.data, roster.unique) 
+### Fixed some indexing crashes, and some crashes for players with 0 events
+player.summary = function (grand.data, roster.unique)
 {
   events <- c("PENL", "SHOT", "GOAL", "MISS", "BLOCK")
   columns <- 3 + c(5:16, 18:20, 28:29)
   involved.players <- NULL
-  for (cc in columns) involved.players <- unique(c(involved.players, 
+  for (cc in columns) involved.players <- unique(c(involved.players,
                                                    grand.data[, cc]))
   involved.players <- sort(involved.players)
-  output <- array(0, c(length(involved.players), length(events), 
+  output <- array(0, c(length(involved.players), length(events),
                        5))
   for (ee in events) {
     message(paste("Matching", ee))
@@ -507,13 +511,13 @@ player.summary = function (grand.data, roster.unique)
         evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
         rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
         output[rws, which(ee == events), 5] <- output[rws, which(ee == events), 5] + evs
-        
-        
+
+
         evs <- table(little.data[little.data$ev.team == little.data$awayteam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
         evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
         rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
-        
+
         output[rws, which(ee == events), 4] <- output[rws, which(ee == events), 4] + evs
       }
       for (cc in which(names(grand.data) %in%  c("h1", "h2", "h3", "h4", "h5", "h6",  "home.G")))  ## patched this line, cc is an index now - JD
@@ -523,7 +527,7 @@ player.summary = function (grand.data, roster.unique)
         evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
         rws <- rws[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
         output[rws, which(ee == events), 4] <- output[rws,  which(ee == events), 4] + evs
-        
+
         evs <- table(little.data[little.data$ev.team == little.data$awayteam, cc])
         rws <- match(as.numeric(names(evs)), involved.players)
         evs <- evs[!is.na(rws)] ### added this line, this removes player that were never involved in that situation (NAs in match() )
@@ -570,7 +574,7 @@ NP.score <- function(grand.data, seconds=20) {
         sub.home <- gt.home[events]
         sub.away <- gt.away[events]
         times <- c(sum(sub.away <= seconds), sum(sub.home <= seconds))
-          
+
         counts.table <- rbind(counts.table,
                               c(ev, ht, zn, length(events),
                                 times))
@@ -587,13 +591,13 @@ NP.score <- function(grand.data, seconds=20) {
 
 
 add.game.adjacency <- function (games) {
-  
+
   games$homeafterhome <- games$homeafteraway <- games$awayafterhome <- games$awayafteraway <- 0
 
   teams <- unique(c(games$hometeam, games$awayteam)); teams <- teams[nchar(teams)>0]
   lastgame <- rep(as.Date("January 1 2000", format="%B %d %Y"), length(teams))
   last.home <- rep(0, length(teams))
-  
+
   for (kk in 1:nrow(games)) if (nchar(games$hometeam[kk]) > 0 & nchar(games$awayteam[kk]) > 0 & !is.na(games$date[kk])){
     if (games$date[kk] == lastgame[which(teams == games$hometeam[kk])] + 1) {
     games$homeafterhome[kk] <- last.home[which(teams == games$hometeam[kk])]

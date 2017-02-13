@@ -3,12 +3,14 @@
 ### by Jack Davis 2016-04-18 ( jackd@sfu.ca )
 ### and by Phil Bulsink 2017-02-10 ( bulsinkp@gmail.com )
 
+
+if(getRversion() >= "2.15.1")  utils::globalVariables(c(".", "%>%"))
 #display.html <- function(season, gcode, folder="nhlr-data") {load(paste0(folder,"/",season,"-",gcode,".RData")); write.table(game.rec$es, "es1.html", row.names=FALSE, col.names=FALSE, quote=FALSE); write.table(game.rec$pl, "pl1.html", row.names=FALSE, col.names=FALSE, quote=FALSE); system(paste("google-chrome es1.html"), wait=FALSE); system(paste("google-chrome pl1.html"), wait=FALSE)}
 
 # Combine all the data frames into one big collection.
 
-.onAttach <- function (...) {
-  packageStartupMessage("nhlscrapr v 1.10.9")
+get.nhlscrapr.version <- function (...) {
+    return("1.10.10")
 }
 
 # Produce the database of games. Add on extra seasons if desired.
@@ -133,18 +135,18 @@ download.single.game <- function (season=20122013, gcode=20001, rdata.folder="nh
     game.rec <- list()
 
     infile <- paste("http://www.nhl.com/scores/htmlreports/",season,"/ES0",gcode,".HTM",sep="")
-    game.rec$es <- try(unlist(strsplit(gsub("\\t", "", gsub("\\r", "", getURL(infile))), "\n")), TRUE)
+    game.rec$es <- try(unlist(strsplit(gsub("\\t", "", gsub("\\r", "", RCurl::getURL(infile))), "\n")), TRUE)
     if (class(game.rec$es) == "try-error") game.rec$es <- NULL  #error.free <- FALSE
 
     infile <- paste("http://www.nhl.com/scores/htmlreports/",season,"/PL0",gcode,".HTM",sep="")
-    game.rec$pl <- try(unlist(strsplit(gsub("\\t", "", gsub("\\r", "", getURL(infile))), "\n")), TRUE)
+    game.rec$pl <- try(unlist(strsplit(gsub("\\t", "", gsub("\\r", "", RCurl::getURL(infile))), "\n")), TRUE)
     if (class(game.rec$pl) == "try-error") game.rec$pl <- NULL  #error.free <- FALSE
 
     ##see if x-y is there.
     infile <- paste0("http://live.nhl.com/GameData/",season,"/",substr(season,1,4),"0",gcode,"/PlayByPlay.json")
-    file2 <- try(getURL(infile), TRUE)
+    file2 <- try(RCurl::getURL(infile), TRUE)
     if (class(file2) != "try-error") {
-        game.rec$xy <- try(fromJSON(file2), TRUE)
+        game.rec$xy <- try(rjson::fromJSON(file2), TRUE)
         if (class(game.rec$xy) == "try-error") {warning("Could not recover x-y coordinates."); game.rec$xy <- NULL}
     } else {warning("Could not download x-y coordinate file."); game.rec$xy <- NULL}
 
@@ -152,7 +154,7 @@ download.single.game <- function (season=20122013, gcode=20001, rdata.folder="nh
 
         infile <- paste("http://www.nhl.com/scores/htmlreports/",season,"/SCH",gcode,".gif",sep="")
         outfile <- paste0(rdata.folder,"/",season,"H",gcode,".gif")
-        g1 <- try(download.file(infile, outfile, mode="wb"), TRUE)
+        g1 <- try(utils::download.file(infile, outfile, mode="wb"), TRUE)
         if (class(g1) == "try-error") {
             game.rec$imh <- NULL  #error.free <- FALSE
         } else {
@@ -161,7 +163,7 @@ download.single.game <- function (season=20122013, gcode=20001, rdata.folder="nh
 
         infile <- paste("http://www.nhl.com/scores/htmlreports/",season,"/SCV",gcode,".gif",sep="")
         outfile <- paste0(rdata.folder,"/",season,"V",gcode,".gif")
-        g1 <- try(download.file(infile, outfile, mode="wb"), TRUE)
+        g1 <- try(utils::download.file(infile, outfile, mode="wb"), TRUE)
         if (class(g1) == "try-error") {
             game.rec$imv <- NULL  #error.free <- FALSE
         } else {
@@ -558,7 +560,7 @@ construct.rosters.from.list <- function (roster.collection,  #raw list
 
         return(subroster)
     }
-    roster.master.2 <- roster.master %>% group_by (player.id) %>% do(subpush(.)) ##%>% rbind_all
+    roster.master.2 <- roster.master %>% dplyr::group_by(player.id) %>% dplyr::do(subpush(.)) ##%>% rbind_all
 
     ## There are a few manual corrections.
     roster.master.2$woi.id[roster.master.2$firstlast == "ALEXANDRE PICARD"] <- "picaral851009"
@@ -768,7 +770,7 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
 aggregate.roster.by.name <- function(roster)
 {
 
-  roster_name = plyr::ddply(roster, .(firstlast), summarize,
+  roster_name <- plyr::ddply(roster, .(firstlast), dplyr::summarize,
                       pos = pos[1],
                       last = last[1],
                       first = first[1],
@@ -783,6 +785,6 @@ aggregate.roster.by.name <- function(roster)
                       pG = sum(pG)
   )
 
-  roster_name = roster_name[order(roster_name$player.id),]
+  roster_name <- roster_name[order(roster_name$player.id),]
   return(roster_name)
 }
