@@ -16,7 +16,8 @@
                        ...)
   process.games       (games=full.game.database(),
                        rdata.folder="nhlr-data",
-                       override.download=FALSE)
+                       override.download=FALSE,
+                       ...)
   retrieve.game       (season="20122013",
                        gcode="20001",
                        rdata.folder="nhlr-data",
@@ -29,6 +30,7 @@
                        verbose=FALSE,
                        override.days.back=NULL,
                        date.check=FALSE,
+                       extra.seasons=0,
                        ...)
 
 }
@@ -50,17 +52,18 @@
   \item{force}{If TRUE, reprocesses the single game file.}
   \item{seasons}{If selected, defaults to a game table with only these
     seasons, of the form "20142015".}
+  \item{extra.seasons}{If a number, will attempt to add extra seasons to end of current coding limit.}
   \item{date.check}{Try and download files without known dates.}
   \item{override.days.back}{Force download for those days previous to
     this one.}
   \item{verbose}{Print extra output information.}
   \item{...}{Arguments to pass to download.single.game().}
-  
+
 }
 \details{
   This group of functions takes the downloaded HTML, image and JSON
   files and produces an event table for each game, particularly focusing
-  on the players on the ice during each event. 
+  on the players on the ice during each event.
 }
 \value{
   process.single.game() produces an object called game.info that
