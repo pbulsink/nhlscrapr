@@ -38,7 +38,7 @@ full.game.database = function (extra.seasons = 0)
                         c(), #20142015
                         c(), #20150216
                         c(477), #20162017
-                        #Extra buffer season
+                        #Extra buffer season(s)
                         c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
                         c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
                         c(), c(), c(), c(), c(), c(), c(), c(), c(),c(), c(),
@@ -87,7 +87,7 @@ full.game.database = function (extra.seasons = 0)
                               5, 4, 6, 7, 7, 6, 6, 7,  7, 7, 6, 7,  6, 7,  5, #20132014
                               6, 7, 5, 7, 6, 6, 4, 6,  6, 7, 4, 5,  7, 7,  6, #20142015
                               6, 5, 6, 5, 6, 7, 7, 5,  5, 6, 7, 7,  7, 6,  6, #20152016
-                              rep(7, 15), #20162017
+                              6, 6, 6, 5, 4, 5, 4, 6,  6, 7, 6, 7,  7, 6,  6, #20162017
                               rep(7, 15 * (extra.seasons)))
   sequence.seven <- function(nn) c(rep(1, nn), rep(0, 7 - nn))
   playoff.status <- c(sapply(playoff.series.lengths, sequence.seven))
@@ -592,9 +592,6 @@ construct.rosters.from.list <- function (roster.collection,  #raw list
 
 #
 
-## setwd("~/Dropbox/war-on-ice-apps"); source("nhlscrapr/R/convert-gif.R"); source("nhlscrapr/R/convert-html.R"); source("nhlscrapr/R/convert-json.R"); source("nhlscrapr/R/GIF.R"); source("nhlscrapr/R/integrate.R"); source("nhlscrapr/R/manual-name-fixes.R"); source("nhlscrapr/R/operations.R"); source("nhlscrapr/R/subzone-adjustments.R"); source("nhlscrapr/R/rushes-and-rebounds.R");
-## setwd ("~/Documents/nhlr/war-on-ice.com")
-
 
 compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source-data",
                              new.game.table = NULL, seasons = NULL, verbose = FALSE, override.days.back = NULL,
@@ -603,7 +600,7 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
 
   if (extra.seasons > 0)
   {
-    seasons <- c(seasons, paste(2015 + 1:extra.seasons, 2016 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20162017 - PB
+    seasons <- c(seasons, paste(2016 + 1:extra.seasons, 2017 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20172018 - PB
   }
 
   suppressWarnings(dir.create(output.folder))
@@ -637,7 +634,7 @@ compile.all.games<-function (rdata.folder = "nhlr-data", output.folder = "source
                           "20112012", "20122013", "20132014", "20142015", "20152016", "20162017")
     if (extra.seasons > 0)
     {
-      eligible.seasons <- c(seasons, paste(2015 + 1:extra.seasons, 2016 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20162017 - PB
+      eligible.seasons <- c(seasons, paste(2016 + 1:extra.seasons, 2017 + 1:extra.seasons, sep = ""))  ## Patched: Extra seasons now start at 20172018 - PB
     }
     if (!all(seasons %in% eligible.seasons))
       stop("Specified seasons must be within ", paste(eligible.seasons,
